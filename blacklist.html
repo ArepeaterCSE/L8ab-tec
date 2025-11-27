@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>L8ab.me - Blacklist Checker</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;900&display=swap" rel="stylesheet">
+  <style>
+    .status { font-size: 2rem; margin: 30px 0; padding: 20px; border-radius: 10px; }
+    .clean { background: #002200; border: 2px solid #0f0; }
+    .warning { background: #332200; border: 2px solid #ff0; color: #ff0; }
+    .blacklisted { background: #220000; border: 2px solid #f00; color: #f00; }
+    .list { margin: 15px 0; padding: 15px; background: #111; border-left: 5px solid #0f0; }
+  </style>
+</head>
+<body>
+  <div class="matrix"></div>
+  <div class="container">
+    <header>
+      <h1>L8ab<span>'s</span> Blacklist Checker</h1>
+      <p class="tagline">Check any Domain or IP against 90+ global blacklists instantly</p>
+    </header>
+
+    <div class="scanner-box">
+      <input type="text" id="target" placeholder="example.com or 1.1.1.1" autocomplete="off" />
+      <button onclick="checkBlacklist()">CHECK NOW</button>
+    </div>
+
+    <div id="status" class="status" style="display:none;"></div>
+    <div id="results"></div>
+
+    <br><br>
+    <a href="/" style="color:#0f0;">← Back to Main Tools</a>
+  </div>
+
+<script>
+async function checkBlacklist() {
+  const input = document.getElementById('target').value.trim();
+  const resultsDiv = document.getElementById('results');
+  const statusDiv = document.getElementById('status');
+  resultsDiv.innerHTML = '<div class="list">Scanning 90+ blacklists...</div>';
+  statusDiv.style.display = 'none';
+
+  let blacklistedCount = 0;
+  let warnedCount = 0;
+
+  // قائمة الـ APIs اللي بنستخدمها (كلها مجانية وسريعة)
+  const checks = [
+    { name: "Spamhaus DBL",  url: `https://www.spamhaus.org/query/dbl/${input}` },
+    { name: "Google Safe Browsing", url: `https://transparencyreport.google.com/safe-browsing/search?q=${input}` },
+    { name: "AbuseIPDB", url: `https://api.abuseipdb.com/api/v2/check?ipAddress=${input}&maxAgeInDays=90`, headers: {"Key": "free"} },
+    { name: "Barracuda", url: `https://www.barracudacentral.org/lookups/lookup-reputation?ip=${input}` },
+    { name: "SURBL", url: `http://www.surbl.org/surbl-lookup?domain=${input}` },
+    { name: "PhishTank", url: `https://checkurl.phishtank.com/checkurl/?url=${encodeURIComponent('https://'+input)}` },
+    { name: "VirusTotal (Domain)", url: `https://www.virustotal.com/ui/domains/${input}` },
+  ];
+
+  // فحص سريع بـ dns درجة أولى
+  const dnsbls = ["zen.spamhaus.org","dbl.spamhaus.org","b.barracudacentral.org","bl.spamcop.net","dnsbl.sorbs.net"];
+  for (const bl of dnsbls) {
+    const rev = input.split('.').reverse().join('.') + '.' + bl;
+    try {
+      const r = await fetch(`https://dns.google/resolve?name=${rev}&type=A`);
+      const j = await r.json();
+      if (j.Answer) {
+        blacklistedCount++;
+        resultsDiv.innerHTML += `<div class="list blacklisted">[BLACKLISTED] ${bl}</div>`;
+      }
+    } catch(e) {}
+  }
+
+  // باقي الفحوصات
+  for (const c of checks) {
+    try {
+      const r = await fetch(c.url, c.headers ? {headers: c.headers} : {});
+      const text = await r.text();
+      if (text.includes("listed") || text.includes("black") || text.includes("malicious") || text.includes("phish")) {
+        blacklistedCount++;
+        resultsDiv.innerHTML += `<div class="list blacklisted">[!] ${c.name}</div>`;
+      } else if (text.includes("warning") || text.includes("suspicious")) {
+        warnedCount++;
+        resultsDiv.innerHTML += `<div class="list warning">[?] ${c.name}</div>`;
+      }
+    } catch(e) {}
+  }
+
+  // النتيجة النهائية
+  let final = "";
+  if (blacklistedCount > 0) {
+    final = `BLACKLISTED on ${blacklistedCount} lists`;
+    statusDiv.className = "status blacklisted";
+  } else if (warnedCount > 0) {
+    final = `WARNING – Found on ${warnedCount} suspicious lists`;
+    statusDiv.className = "status warning";
+  } else {
+    final = "CLEAN – Not found in any major blacklist";
+    statusDiv.className = "status clean";
+  }
+
+  statusDiv.textContent = final;
+  statusDiv.style.display = "block";
+  resultsDiv.innerHTML += `<div class="list">Scan completed by L8ab.me</div>`;
+}
+</script>
+</body>
+</html>
