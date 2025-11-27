@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>L8ab's Tools</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="data:,">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>L8ab<span>'s</span> Tools</h1>
+      <p>Ethical Hacking • Vulnerability Research • Authorized Testing Only</p>
+    </header>
+
+    <section class="tools">
+      <h2>Powerful Tools</h2>
+      <div class="grid">
+        <a href="https://nmap.org" target="_blank">Nmap</a>
+        <a href="https://github.com/sqlmapproject/sqlmap" target="_blank">sqlmap</a>
+        <a href="https://owasp.org/www-project-zap/" target="_blank">OWASP ZAP</a>
+        <a href="https://www.openvas.org" target="_blank">OpenVAS</a>
+        <a href="https://cirt.net/Nikto2" target="_blank">Nikto</a>
+        <a href="https://github.com/ffuf/ffuf" target="_blank">ffuf</a>
+        <a href="https://burpsuite.portswigger.net" target="_blank">Burp Suite</a>
+        <a href="https://github.com/epi052/feroxbuster" target="_blank">Feroxbuster</a>
+      </div>
+    </section>
+
+    <section class="scanner">
+      <h2>Quick URL Scanner</h2>
+      <input type="text" id="urlInput" placeholder="https://example.com" />
+      <button onclick="scan()">SCAN TARGET</button>
+      <pre id="output"></pre>
+    </section>
+
+    <footer>
+      <p>L8ab@proton.me • GitHub: L8ab-Tools • Use only with written permission</p>
+    </footer>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
